@@ -1,0 +1,240 @@
+// Function to fetch data from a public Google Sheet (CSV format)
+async function fetchGoogleSheetData(sheetId) {
+  const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv`;
+
+  try {
+    // Show loading indicator
+    document.getElementById('loading-indicator').style.display = 'block';
+
+    const response = await fetch(url);
+    const csvText = await response.text();
+
+    // Hide loading indicator
+    document.getElementById('loading-indicator').style.display = 'none';
+
+    const rows = csvText
+      .split('\n')
+      .map(row => row.split(',').map(cell => cell.replace(/^"|"$/g, '')));
+    return rows;
+  } catch (error) {
+    console.error('Error fetching Google Sheets data:', error);
+    return [];
+  }
+}
+
+// Debounce function
+function debounce(func, wait) {
+  let timeout;
+  return function (...args) {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => func.apply(this, args), wait);
+  };
+}
+
+// Initialize the widget when ready
+JFCustomWidget.subscribe('ready', async function () {
+  const input = document.getElementById('autocomplete-input');
+  const suggestionsList = document.getElementById('suggestions-list');
+
+  // Get widget settings
+  const sheetId = JFCustomWidget.getWidgetSetting('googleSheetId');
+  const columnIndex = parseInt(JFCustomWidget.getWidgetSetting('columnIndex'), 10) || 0;
+  const inputWidthSetting = JFCustomWidget.getWidgetSetting('inputWidth') || '100%';
+  const autocompleteWidthSetting = JFCustomWidget.getWidgetSetting('autocompleteWidth') || '100%';
+  const dynamicResize = JFCustomWidget.getWidgetSetting('dynamicResize') !== false; // Defaults to true
+  const threshold = parseFloat(JFCustomWidget.getWidgetSetting('threshold')) || 0.2;
+  const distance = parseInt(JFCustomWidget.getWidgetSetting('distance'), 10) || 100;
+  const maxResults = parseInt(JFCustomWidget.getWidgetSetting('maxResults'), 10) || 5;
+  const minCharRequired = parseInt(JFCustomWidget.getWidgetSetting('minCharRequired'), 10) || 3;
+  const debounceTime = parseInt(JFCustomWidget.getWidgetSetting('debounceTime'), 10) || 300;
+
+  // Apply width settings
+  input.style.width = inputWidthSetting;
+  suggestionsList.style.width = autocompleteWidthSetting;
+
+  // Add ARIA attributes
+  input.setAttribute('aria-autocomplete', 'list');
+  input.setAttribute('aria-haspopup', 'listbox');
+  suggestionsList.setAttribute('role', 'listbox');
+
+  // Fetch data from Google Sheets
+  const data = await fetchGoogleSheetData(sheetId);
+
+  if (data.length > 0) {
+    // Transform data into objects with 'name' property
+    const columnData = data.slice(1).map(row => ({ name: row[columnIndex] }));
+
+    // Set up Fuse.js for fuzzy searching
+    const options = {
+      shouldSort: true,
+      threshold: threshold,
+      distance: distance,
+      minMatchCharLength: minCharRequired,
+      keys: ['name'],
+      includeScore: true,
+      includeMatches: true
+    };
+    const fuse = new Fuse(columnData, options);
+
+    let selectedIndex = -1;
+    const searchCache = {};
+
+    // Adjust iframe height on window resize (optional)
+    window.addEventListener('resize', adjustIframeHeight);
+
+    // Add event listener to the input with debounce
+    input.addEventListener('input', debounce(onInputChange, debounceTime));
+
+    function onInputChange(e) {
+      const searchTerm = e.target.value;
+
+      if (searchTerm.length >= minCharRequired) {
+        if (searchCache[searchTerm]) {
+          displaySuggestions(searchCache[searchTerm]);
+        } else {
+          const results = fuse.search(searchTerm);
+          searchCache[searchTerm] = results;
+          displaySuggestions(results);
+        }
+      } else {
+        suggestionsList.style.display = 'none';
+        suggestionsList.innerHTML = '';
+        adjustIframeHeight();
+      }
+    }
+
+    function displaySuggestions(results) {
+      const suggestions = results
+        .sort((a, b) => a.score - b.score)
+        .slice(0, maxResults);
+
+      // Clear previous suggestions
+      suggestionsList.innerHTML = '';
+      selectedIndex = -1;
+
+      // Populate suggestions
+      suggestions.forEach((suggestion, index) => {
+        const li = document.createElement('li');
+        li.innerHTML = highlightMatch(suggestion);
+        li.setAttribute('role', 'option');
+        li.setAttribute('id', `suggestion-${index}`);
+        li.addEventListener('click', () => {
+          input.value = suggestion.item.name;
+          suggestionsList.innerHTML = ''; // Clear suggestions
+          suggestionsList.style.display = 'none';
+          JFCustomWidget.sendSubmit({ value: suggestion.item.name, valid: true });
+          adjustIframeHeight(); // Adjust iframe height
+        });
+        suggestionsList.appendChild(li);
+      });
+
+      suggestionsList.style.display = 'block';
+      adjustIframeHeight();
+    }
+
+    function highlightMatch(result) {
+      const { item, matches } = result;
+      let highlighted = item.name;
+      if (matches && matches.length > 0) {
+        matches.forEach(match => {
+          const indices = match.indices;
+          let offset = 0;
+          indices.forEach(([start, end]) => {
+            const before = highlighted.slice(0, start + offset);
+            const matchText = highlighted.slice(start + offset, end + offset + 1);
+            const after = highlighted.slice(end + offset + 1);
+            highlighted = `${before}<mark>${matchText}</mark>${after}`;
+            offset += '<mark></mark>'.length;
+          });
+        });
+      }
+      return highlighted;
+    }
+
+    input.addEventListener('keydown', (e) => {
+      const items = suggestionsList.getElementsByTagName('li');
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        if (items.length > 0 && selectedIndex >= 0 && selectedIndex < items.length) {
+          // Suggestion selected
+          input.value = items[selectedIndex].textContent;
+        }
+        // Clear suggestions
+        suggestionsList.innerHTML = '';
+        suggestionsList.style.display = 'none';
+        JFCustomWidget.sendSubmit({ value: input.value, valid: true });
+        adjustIframeHeight(); // Adjust iframe height
+      } else if (items.length > 0) {
+        if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          if (selectedIndex < items.length - 1) {
+            selectedIndex++;
+            updateSelection(items);
+          }
+        } else if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          if (selectedIndex > 0) {
+            selectedIndex--;
+            updateSelection(items);
+          }
+        }
+      }
+    });
+
+    function updateSelection(items) {
+      Array.from(items).forEach((item, index) => {
+        item.classList.toggle('selected', index === selectedIndex);
+        if (index === selectedIndex) {
+          item.setAttribute('aria-selected', 'true');
+          item.scrollIntoView({ block: 'nearest' });
+        } else {
+          item.removeAttribute('aria-selected');
+        }
+      });
+    }
+
+    // Monitor changes in the suggestions list to adjust height
+    const observer = new MutationObserver(() => {
+      adjustIframeHeight();
+    });
+
+    observer.observe(suggestionsList, { childList: true, subtree: true });
+
+    // Adjust height when the suggestions list is shown or hidden
+    input.addEventListener('focus', adjustIframeHeight);
+    input.addEventListener('blur', () => {
+      // Delay to allow click events on suggestions to process
+      setTimeout(() => {
+        suggestionsList.style.display = 'none';
+        suggestionsList.innerHTML = '';
+        JFCustomWidget.sendSubmit({ value: input.value, valid: true });
+        adjustIframeHeight();
+      }, 100);
+    });
+
+    function adjustIframeHeight() {
+      if (dynamicResize) {
+        const inputRect = input.getBoundingClientRect();
+        const suggestionsRect = suggestionsList.getBoundingClientRect();
+        let totalHeight = inputRect.height;
+
+        if (suggestionsList.style.display === 'block' && suggestionsList.childElementCount > 0) {
+          totalHeight += suggestionsRect.height;
+        }
+
+        totalHeight += 20; // Additional padding if needed
+
+        // Request iframe resize
+        JFCustomWidget.requestFrameResize(totalHeight);
+      } else {
+        // Use fixed height
+        JFCustomWidget.requestFrameResize(250); // Set to desired fixed height
+      }
+    }
+
+    // Initial iframe height adjustment
+    adjustIframeHeight();
+  } else {
+    console.error('No data retrieved from Google Sheet.');
+  }
+});
