@@ -3,14 +3,8 @@ async function fetchGoogleSheetData(sheetId) {
   const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv`;
 
   try {
-    // Show loading indicator
-    document.getElementById('loading-indicator').style.display = 'block';
-
     const response = await fetch(url);
     const csvText = await response.text();
-
-    // Hide loading indicator
-    document.getElementById('loading-indicator').style.display = 'none';
 
     const rows = csvText
       .split('\n')
@@ -193,13 +187,6 @@ JFCustomWidget.subscribe('ready', async function () {
       });
     }
 
-    // Monitor changes in the suggestions list to adjust height
-    const observer = new MutationObserver(() => {
-      adjustIframeHeight();
-    });
-
-    observer.observe(suggestionsList, { childList: true, subtree: true });
-
     // Adjust height when the suggestions list is shown or hidden
     input.addEventListener('focus', adjustIframeHeight);
     input.addEventListener('blur', () => {
@@ -214,12 +201,12 @@ JFCustomWidget.subscribe('ready', async function () {
 
     function adjustIframeHeight() {
       if (dynamicResize) {
-        const inputRect = input.getBoundingClientRect();
-        const suggestionsRect = suggestionsList.getBoundingClientRect();
-        let totalHeight = inputRect.height;
+        const inputHeight = input.offsetHeight;
+        let totalHeight = inputHeight;
 
         if (suggestionsList.style.display === 'block' && suggestionsList.childElementCount > 0) {
-          totalHeight += suggestionsRect.height;
+          const suggestionsHeight = suggestionsList.scrollHeight;
+          totalHeight += suggestionsHeight;
         }
 
         totalHeight += 20; // Additional padding if needed
@@ -234,6 +221,7 @@ JFCustomWidget.subscribe('ready', async function () {
 
     // Initial iframe height adjustment
     adjustIframeHeight();
+
   } else {
     console.error('No data retrieved from Google Sheet.');
   }
