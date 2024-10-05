@@ -1,20 +1,5 @@
 // Function to fetch data from a public Google Sheet (CSV format)
-async function fetchGoogleSheetData(sheetId) {
-  const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv`;
-
-  try {
-    const response = await fetch(url);
-    const csvText = await response.text();
-
-    const rows = csvText
-      .split('\n')
-      .map(row => row.split(',').map(cell => cell.replace(/^"|"$/g, '')));
-    return rows;
-  } catch (error) {
-    console.error('Error fetching Google Sheets data:', error);
-    return [];
-  }
-}
+// (No changes needed here)
 
 // Debounce function
 function debounce(func, wait) {
@@ -32,17 +17,27 @@ JFCustomWidget.subscribe('ready', async function () {
 
   // Get widget settings
   const sheetId = JFCustomWidget.getWidgetSetting('googleSheetId');
-  const columnIndex = parseInt(JFCustomWidget.getWidgetSetting('columnIndex'), 10) || 0;
+  const columnIndexSetting = JFCustomWidget.getWidgetSetting('columnIndex');
+  const columnIndex = columnIndexSetting !== undefined ? parseInt(columnIndexSetting, 10) : 0;
   const inputWidthSetting = JFCustomWidget.getWidgetSetting('inputWidth') || '100%';
   const autocompleteWidthSetting = JFCustomWidget.getWidgetSetting('autocompleteWidth') || '100%';
   const dynamicResize = JFCustomWidget.getWidgetSetting('dynamicResize') !== false; // Defaults to true
-  const threshold = parseFloat(JFCustomWidget.getWidgetSetting('threshold')) || 0.2;
-  const distance = parseInt(JFCustomWidget.getWidgetSetting('distance'), 10) || 100;
-  const maxResults = parseInt(JFCustomWidget.getWidgetSetting('maxResults'), 10) || 5;
-  const minCharRequired = parseInt(JFCustomWidget.getWidgetSetting('minCharRequired'), 10) || 3;
-  const debounceTime = parseInt(JFCustomWidget.getWidgetSetting('debounceTime'), 10) || 300;
 
+  // Corrected settings retrieval
+  const thresholdSetting = JFCustomWidget.getWidgetSetting('threshold');
+  const threshold = thresholdSetting !== undefined ? parseFloat(thresholdSetting) : 0.2;
 
+  const distanceSetting = JFCustomWidget.getWidgetSetting('distance');
+  const distance = distanceSetting !== undefined ? parseInt(distanceSetting, 10) : 100;
+
+  const maxResultsSetting = JFCustomWidget.getWidgetSetting('maxResults');
+  const maxResults = maxResultsSetting !== undefined ? parseInt(maxResultsSetting, 10) : 5;
+
+  const minCharRequiredSetting = JFCustomWidget.getWidgetSetting('minCharRequired');
+  const minCharRequired = minCharRequiredSetting !== undefined ? parseInt(minCharRequiredSetting, 10) : 3;
+
+  const debounceTimeSetting = JFCustomWidget.getWidgetSetting('debounceTime');
+  const debounceTime = debounceTimeSetting !== undefined ? parseInt(debounceTimeSetting, 10) : 300;
 
   // Apply width settings
   input.style.width = inputWidthSetting;
