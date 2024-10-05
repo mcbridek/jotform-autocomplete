@@ -211,11 +211,11 @@ JFCustomWidget.subscribe('ready', async function () {
 
         totalHeight += 20; // Additional padding if needed
 
-        // Request iframe resize
-        JFCustomWidget.requestFrameResize(totalHeight);
+        // Request iframe resize with correct parameter
+        JFCustomWidget.requestFrameResize({ height: totalHeight });
       } else {
         // Use fixed height
-        JFCustomWidget.requestFrameResize(250); // Set to desired fixed height
+        JFCustomWidget.requestFrameResize({ height: 250 }); // Set to desired fixed height
       }
     }
 
