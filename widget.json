@@ -8,13 +8,14 @@
   },
   "sandbox": true,
   "description": "An autocomplete widget with fuzzy search using data from a Google Sheet.",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "options": {
     "googleSheetId": {
       "type": "text",
       "label": "Google Sheet ID",
       "description": "Enter the ID of your public Google Sheet.",
-      "required": true
+      "required": true,
+      "default": "1EqDyirzwOEhUm2u6uypgRhp2JDEEDcNBHc5rZYhulME"
     },
     "columnIndex": {
       "type": "number",

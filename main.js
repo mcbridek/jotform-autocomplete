@@ -42,6 +42,8 @@ JFCustomWidget.subscribe('ready', async function () {
   const minCharRequired = parseInt(JFCustomWidget.getWidgetSetting('minCharRequired'), 10) || 3;
   const debounceTime = parseInt(JFCustomWidget.getWidgetSetting('debounceTime'), 10) || 300;
 
+
+
   // Apply width settings
   input.style.width = inputWidthSetting;
   suggestionsList.style.width = autocompleteWidthSetting;
