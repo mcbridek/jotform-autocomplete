@@ -17,8 +17,6 @@ async function fetchGoogleSheetData(sheetId) {
       .map(row => row.split(',').map(cell => cell.replace(/^"|"$/g, '')));
     return rows;
   } catch (error) {
-    console.error('Error fetching Google Sheets data:', error);
-    alert('Failed to fetch data from Google Sheets. Please check the sheet ID and try again.');
     return [];
   }
 }
