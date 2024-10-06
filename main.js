@@ -1,3 +1,9 @@
+// Add this utility function at the top of the file
+function getWidgetSetting(settingName, defaultValue, parseFunc = (val) => val) {
+  const setting = JFCustomWidget.getWidgetSetting(settingName);
+  return setting !== undefined && setting !== '' ? parseFunc(setting) : defaultValue;
+}
+
 // Function to fetch data from a public Google Sheet (CSV format)
 async function fetchGoogleSheetData(sheetId) {
   const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv`;
@@ -12,6 +18,7 @@ async function fetchGoogleSheetData(sheetId) {
     return rows;
   } catch (error) {
     console.error('Error fetching Google Sheets data:', error);
+    alert('Failed to fetch data from Google Sheets. Please check the sheet ID and try again.');
     return [];
   }
 }
@@ -35,40 +42,16 @@ JFCustomWidget.subscribe('ready', async function () {
 
   // Get widget settings
   const sheetId = JFCustomWidget.getWidgetSetting('googleSheetId');
-  const columnIndexSetting = JFCustomWidget.getWidgetSetting('columnIndex');
-  const columnIndex = columnIndexSetting !== undefined && columnIndexSetting !== ''
-    ? parseInt(columnIndexSetting, 10)
-    : 0;
-
-  const placeholderText = JFCustomWidget.getWidgetSetting('placeholderText') || 'Start typing...';
-  const inputWidthSetting = JFCustomWidget.getWidgetSetting('inputWidth') || '100%';
-  const autocompleteWidthSetting = JFCustomWidget.getWidgetSetting('autocompleteWidth') || '100%';
-  const dynamicResize = JFCustomWidget.getWidgetSetting('dynamicResize') !== false; // Defaults to true
-
-  const thresholdSetting = JFCustomWidget.getWidgetSetting('threshold');
-  const threshold = thresholdSetting !== undefined && thresholdSetting !== ''
-    ? parseFloat(thresholdSetting)
-    : 0.2;
-
-  const distanceSetting = JFCustomWidget.getWidgetSetting('distance');
-  const distance = distanceSetting !== undefined && distanceSetting !== ''
-    ? parseInt(distanceSetting, 10)
-    : 100;
-
-  const maxResultsSetting = JFCustomWidget.getWidgetSetting('maxResults');
-  const maxResults = maxResultsSetting !== undefined && maxResultsSetting !== ''
-    ? parseInt(maxResultsSetting, 10)
-    : 5;
-
-  const minCharRequiredSetting = JFCustomWidget.getWidgetSetting('minCharRequired');
-  const minCharRequired = minCharRequiredSetting !== undefined && minCharRequiredSetting !== ''
-    ? parseInt(minCharRequiredSetting, 10)
-    : 3;
-
-  const debounceTimeSetting = JFCustomWidget.getWidgetSetting('debounceTime');
-  const debounceTime = debounceTimeSetting !== undefined && debounceTimeSetting !== ''
-    ? parseInt(debounceTimeSetting, 10)
-    : 300;
+  const columnIndex = getWidgetSetting('columnIndex', 0, parseInt);
+  const placeholderText = getWidgetSetting('placeholderText', 'Start typing...');
+  const inputWidthSetting = getWidgetSetting('inputWidth', '100%');
+  const autocompleteWidthSetting = getWidgetSetting('autocompleteWidth', '100%');
+  const dynamicResize = getWidgetSetting('dynamicResize', true);
+  const threshold = getWidgetSetting('threshold', 0.2, parseFloat);
+  const distance = getWidgetSetting('distance', 100, parseInt);
+  const maxResults = getWidgetSetting('maxResults', 5, parseInt);
+  const minCharRequired = getWidgetSetting('minCharRequired', 3, parseInt);
+  const debounceTime = getWidgetSetting('debounceTime', 300, parseInt);
 
   // Apply width settings
   input.style.width = inputWidthSetting;
@@ -112,7 +95,6 @@ JFCustomWidget.subscribe('ready', async function () {
 
     function onInputChange(e) {
       const searchTerm = e.target.value;
-
       if (searchTerm.length >= minCharRequired) {
         if (searchCache[searchTerm]) {
           displaySuggestions(searchCache[searchTerm]);
@@ -122,13 +104,15 @@ JFCustomWidget.subscribe('ready', async function () {
           displaySuggestions(results);
         }
       } else {
-        suggestionsList.style.display = 'none';
-        suggestionsList.innerHTML = '';
-        adjustIframeHeight();
+        clearSuggestions();
       }
-
-      // Submit the input value after the user stops typing
       JFCustomWidget.sendSubmit({ value: input.value, valid: true });
+    }
+
+    function clearSuggestions() {
+      suggestionsList.style.display = 'none';
+      suggestionsList.innerHTML = '';
+      adjustIframeHeight();
     }
 
     function displaySuggestions(results) {
