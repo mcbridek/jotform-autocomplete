@@ -1,6 +1,8 @@
 body {
   font-family: Arial, sans-serif;
-  transition: height 0.2s ease-out;;
+  transition: height 0.2s ease-out;
+  padding: 0;
+  margin: 0;
 }
 
 #autocomplete-input {
