@@ -42,8 +42,6 @@ JFCustomWidget.subscribe('ready', async function () {
   const minCharRequired = parseInt(JFCustomWidget.getWidgetSetting('minCharRequired'), 10) || 3;
   const debounceTime = parseInt(JFCustomWidget.getWidgetSetting('debounceTime'), 10) || 300;
 
-
-
   // Apply width settings
   input.style.width = inputWidthSetting;
   suggestionsList.style.width = autocompleteWidthSetting;
@@ -223,8 +221,13 @@ JFCustomWidget.subscribe('ready', async function () {
 
     // Initial iframe height adjustment
     adjustIframeHeight();
-
   } else {
     console.error('No data retrieved from Google Sheet.');
   }
+});
+
+// Subscribe to the 'submit' event
+JFCustomWidget.subscribe('submit', function () {
+  // Send the current input value when the form is submitted
+  JFCustomWidget.sendSubmit({ value: input.value, valid: true });
 });
