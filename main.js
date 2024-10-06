@@ -35,16 +35,40 @@ JFCustomWidget.subscribe('ready', async function () {
 
   // Get widget settings
   const sheetId = JFCustomWidget.getWidgetSetting('googleSheetId');
-  const columnIndex = parseInt(JFCustomWidget.getWidgetSetting('columnIndex'), 10) || 0;
+  const columnIndexSetting = JFCustomWidget.getWidgetSetting('columnIndex');
+  const columnIndex = columnIndexSetting !== undefined && columnIndexSetting !== ''
+    ? parseInt(columnIndexSetting, 10)
+    : 0;
+
   const placeholderText = JFCustomWidget.getWidgetSetting('placeholderText') || 'Start typing...';
   const inputWidthSetting = JFCustomWidget.getWidgetSetting('inputWidth') || '100%';
   const autocompleteWidthSetting = JFCustomWidget.getWidgetSetting('autocompleteWidth') || '100%';
   const dynamicResize = JFCustomWidget.getWidgetSetting('dynamicResize') !== false; // Defaults to true
-  const threshold = parseFloat(JFCustomWidget.getWidgetSetting('threshold')) || 0.2;
-  const distance = parseInt(JFCustomWidget.getWidgetSetting('distance'), 10) || 100;
-  const maxResults = parseInt(JFCustomWidget.getWidgetSetting('maxResults'), 10) || 5;
-  const minCharRequired = parseInt(JFCustomWidget.getWidgetSetting('minCharRequired'), 10) || 3;
-  const debounceTime = parseInt(JFCustomWidget.getWidgetSetting('debounceTime'), 10) || 300;
+
+  const thresholdSetting = JFCustomWidget.getWidgetSetting('threshold');
+  const threshold = thresholdSetting !== undefined && thresholdSetting !== ''
+    ? parseFloat(thresholdSetting)
+    : 0.2;
+
+  const distanceSetting = JFCustomWidget.getWidgetSetting('distance');
+  const distance = distanceSetting !== undefined && distanceSetting !== ''
+    ? parseInt(distanceSetting, 10)
+    : 100;
+
+  const maxResultsSetting = JFCustomWidget.getWidgetSetting('maxResults');
+  const maxResults = maxResultsSetting !== undefined && maxResultsSetting !== ''
+    ? parseInt(maxResultsSetting, 10)
+    : 5;
+
+  const minCharRequiredSetting = JFCustomWidget.getWidgetSetting('minCharRequired');
+  const minCharRequired = minCharRequiredSetting !== undefined && minCharRequiredSetting !== ''
+    ? parseInt(minCharRequiredSetting, 10)
+    : 3;
+
+  const debounceTimeSetting = JFCustomWidget.getWidgetSetting('debounceTime');
+  const debounceTime = debounceTimeSetting !== undefined && debounceTimeSetting !== ''
+    ? parseInt(debounceTimeSetting, 10)
+    : 300;
 
   // Apply width settings
   input.style.width = inputWidthSetting;
