@@ -6,6 +6,7 @@ body {
 }
 
 #autocomplete-input {
+  height: 53px;
   padding: 14px 8px;
   border-radius: 8px;
   margin-bottom: 0;
