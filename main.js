@@ -126,6 +126,9 @@ JFCustomWidget.subscribe('ready', async function () {
         suggestionsList.innerHTML = '';
         adjustIframeHeight();
       }
+
+      // Submit the input value after the user stops typing
+      JFCustomWidget.sendSubmit({ value: input.value, valid: true });
     }
 
     function displaySuggestions(results) {

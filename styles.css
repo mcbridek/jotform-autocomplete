@@ -1,6 +1,8 @@
 body {
   font-family: Arial, sans-serif;
   transition: height 0.2s ease-out;
+  margin: 0px;
+  padding: 0px;
 }
 
 #autocomplete-input {
@@ -21,7 +23,7 @@ body {
 
 #autocomplete-input:focus {
   border-bottom-color: #66afe9;
-  border-radius: 8px 8px 0px 0px
+  border-radius: 8px 8px 0px 0px;
 }
 
 #suggestions-list {
