@@ -8,7 +8,7 @@
   },
   "sandbox": true,
   "description": "An autocomplete widget with fuzzy search using data from a Google Sheet.",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "options": {
     "googleSheetId": {
       "type": "text",
@@ -22,6 +22,12 @@
       "label": "Column Index",
       "description": "Enter the zero-based index of the column to use for autocomplete (e.g., 0 for the first column).",
       "default": 0
+    },
+    "placeholderText": {
+      "type": "text",
+      "label": "Placeholder Text",
+      "description": "Specify the placeholder text for the input field.",
+      "default": "Start typing..."
     },
     "inputWidth": {
       "type": "text",

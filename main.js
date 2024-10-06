@@ -25,14 +25,18 @@ function debounce(func, wait) {
   };
 }
 
+// Declare the input variable in the outer scope to make it accessible in the 'submit' event
+let input;
+
 // Initialize the widget when ready
 JFCustomWidget.subscribe('ready', async function () {
-  const input = document.getElementById('autocomplete-input');
+  input = document.getElementById('autocomplete-input');
   const suggestionsList = document.getElementById('suggestions-list');
 
   // Get widget settings
   const sheetId = JFCustomWidget.getWidgetSetting('googleSheetId');
   const columnIndex = parseInt(JFCustomWidget.getWidgetSetting('columnIndex'), 10) || 0;
+  const placeholderText = JFCustomWidget.getWidgetSetting('placeholderText') || 'Start typing...';
   const inputWidthSetting = JFCustomWidget.getWidgetSetting('inputWidth') || '100%';
   const autocompleteWidthSetting = JFCustomWidget.getWidgetSetting('autocompleteWidth') || '100%';
   const dynamicResize = JFCustomWidget.getWidgetSetting('dynamicResize') !== false; // Defaults to true
@@ -45,6 +49,9 @@ JFCustomWidget.subscribe('ready', async function () {
   // Apply width settings
   input.style.width = inputWidthSetting;
   suggestionsList.style.width = autocompleteWidthSetting;
+
+  // Set the placeholder text
+  input.placeholder = placeholderText;
 
   // Add ARIA attributes
   input.setAttribute('aria-autocomplete', 'list');

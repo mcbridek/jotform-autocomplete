@@ -1,12 +1,11 @@
 body {
   font-family: Arial, sans-serif;
   transition: height 0.2s ease-out;
-  padding: 0px;
-  margin: 0px;
 }
 
 #autocomplete-input {
   padding: 14px 8px;
+  border: 1px solid #f7f7f7;
   border-radius: 8px;
   margin-bottom: 0;
   font-size: 16px;
@@ -18,12 +17,10 @@ body {
   border: 1px solid transparent;
   border-bottom-color: #ecedef;
   transition: border-color 0.3s;
-  box-sizing: border-box;
 }
 
 #autocomplete-input:focus {
   border-bottom-color: #66afe9;
-  border-radius: 8px 8px 0px 0px
 }
 
 #suggestions-list {
@@ -36,12 +33,12 @@ body {
   border: 1px solid #99ceff;
   border-top: 0px;
   border-radius: 0 0 8px 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   background-color: #fff;
   z-index: 9999;
   display: none;
   max-height: 200px;
   overflow-y: auto;
-  box-sizing: border-box;
 }
 
 #suggestions-list li {
