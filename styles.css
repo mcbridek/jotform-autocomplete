@@ -67,3 +67,25 @@ body {
   padding: 5px;
   margin-bottom: 20px;
 }
+
+.input-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+#userInput {
+  width: 100%;
+  padding: 10px;
+  font-size: 16px;
+}
+
+#autocomplete {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  padding: 10px;
+  font-size: 16px;
+  color: #999;
+  pointer-events: none;
+}
